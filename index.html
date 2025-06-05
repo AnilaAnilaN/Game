@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fruit Memory Match</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --light: #dfe6e9;
+            --dark: #2d3436;
+            --success: #00b894;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #2d3436);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--light);
+            overflow-x: hidden;
+            padding: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-container {
+            width: 95%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(44, 44, 84, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+        }
+        
+        .game-header {
+            text-align: center;
+            padding: 20px 0;
+            position: relative;
+        }
+        
+        .game-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, #fd79a8, #a29bfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            letter-spacing: 1px;
+        }
+        
+        .game-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            margin-bottom: 25px;
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-box {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stars {
+            color: gold;
+            font-size: 1.5rem;
+            letter-spacing: 5px;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 30px auto;
+        }
+        
+        .card {
+            aspect-ratio: 1/1;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border-radius: 12px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #2d3436, #636e72);
+            border-radius: 12px;
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        .card.matched .card-back {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            box-shadow: 0 0 25px rgba(0, 255, 170, 0.5);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn-game {
+            background: linear-gradient(to right, #fd79a8, #e84393);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        .btn-game:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn-game:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(to right, #00cec9, #0984e3);
+        }
+        
+        .win-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .win-message.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .win-content {
+            background: linear-gradient(135deg, #2d3436, #1a1a2e);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            transform: scale(0.8);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 50px rgba(101, 45, 230, 0.5);
+            position: relative;
+            z-index: 1001;
+        }
+        
+        .win-message.show .win-content {
+            transform: scale(1);
+        }
+        
+        .win-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+        
+        .win-stats {
+            font-size: 1.5rem;
+            margin: 15px 0;
+        }
+        
+        .fireworks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            
+            .game-title {
+                font-size: 2.2rem;
+            }
+            
+            .stat-value {
+                font-size: 1.4rem;
+            }
+            
+            .card-front, .card-back {
+                font-size: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-game {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes match {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .card.matched .card-back {
+            animation: match 0.8s ease;
+        }
+        
+        /* Particle effects for win screen */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        /* Star animation for matches */
+        .star-animation {
+            position: absolute;
+            font-size: 2rem;
+            color: gold;
+            animation: star-fly 1.5s ease-out forwards;
+            z-index: 10;
+        }
+        
+        @keyframes star-fly {
+            0% {
+                transform: translate(0, 0) scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">Fruit Memory Match</h1>
+            <p class="game-subtitle">Match pairs of fruits as quickly as possible with the fewest moves</p>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-value" id="moves">0</div>
+                <div class="stat-label">Moves</div>
+            </div>
+            <div class="stat-box">
+                <div class="stars">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-label">Rating</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="timer">00:00</div>
+                <div class="stat-label">Time</div>
+            </div>
+        </div>
+        
+        <div class="game-board" id="game-board">
+            <!-- Cards will be generated by JavaScript -->
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-game btn-reset" id="reset-btn">
+                <i class="fas fa-redo-alt"></i> Reset Game
+            </button>
+            <button class="btn btn-game" id="new-game-btn">
+                <i class="fas fa-plus-circle"></i> New Game
+            </button>
+        </div>
+    </div>
+    
+    <div class="win-message" id="win-message">
+        <div class="win-content">
+            <h2 class="win-title">Congratulations!</h2>
+            <div class="win-stats">
+                <p>You completed the game in <span id="win-time">00:00</span></p>
+                <p>with <span id="win-moves">0</span> moves</p>
+                <p>and earned <span id="win-stars">3</span> stars!</p>
+            </div>
+            <button class="btn btn-game" id="play-again-btn">
+                <i class="fas fa-play-circle"></i> Play Again
+            </button>
+        </div>
+        <div class="fireworks" id="fireworks"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game elements
+            const gameBoard = document.getElementById('game-board');
+            const movesDisplay = document.getElementById('moves');
+            const timerDisplay = document.getElementById('timer');
+            const resetBtn = document.getElementById('reset-btn');
+            const newGameBtn = document.getElementById('new-game-btn');
+            const winMessage = document.getElementById('win-message');
+            const winTime = document.getElementById('win-time');
+            const winMoves = document.getElementById('win-moves');
+            const winStars = document.getElementById('win-stars');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const fireworksContainer = document.getElementById('fireworks');
+            
+            // Game variables
+            let cards = [];
+            let flippedCards = [];
+            let matchedPairs = 0;
+            let moves = 0;
+            let timer = null;
+            let seconds = 0;
+            let gameStarted = false;
+            
+            // Fruit emojis - visually appealing fruit icons
+            const emojis = [
+                '🍎', '🍊', '🍋', '🍇', 
+                '🍓', '🍑', '🍒', '🥭',
+                '🍍', '🥥', '🥝', '🍉'
+            ];
+            
+            // We'll use 6 pairs (12 cards) for a 4x3 grid
+            const icons = emojis.slice(0, 6);
+            
+            // Initialize game
+            initGame();
+            
+            // Event listeners
+            resetBtn.addEventListener('click', resetGame);
+            newGameBtn.addEventListener('click', initGame);
+            playAgainBtn.addEventListener('click', initGame);
+            
+            // Initialize the game
+            function initGame() {
+                // Reset game state
+                gameBoard.innerHTML = '';
+                flippedCards = [];
+                matchedPairs = 0;
+                moves = 0;
+                movesDisplay.textContent = moves;
+                clearInterval(timer);
+                seconds = 0;
+                timerDisplay.textContent = '00:00';
+                gameStarted = false;
+                winMessage.classList.remove('show');
+                
+                // Reset star rating
+                document.querySelectorAll('.stars i').forEach(star => {
+                    star.style.opacity = '1';
+                });
+                
+                // Create card pairs
+                cards = [];
+                const allIcons = [...icons, ...icons];
+                shuffleArray(allIcons);
+                
+                // Create card elements
+                allIcons.forEach(icon => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-front floating">?</div>
+                            <div class="card-back">${icon}</div>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => flipCard(card));
+                    gameBoard.appendChild(card);
+                    cards.push({
+                        element: card,
+                        icon: icon,
+                        isFlipped: false,
+                        isMatched: false
+                    });
+                });
+            }
+            
+            // Reset the current game
+            function resetGame() {
+                // Reset game state
+                flippedCards = [];
+                matchedPairs = 0;
+                moves = 0;
+                movesDisplay.textContent = moves;
+                clearInterval(timer);
+                seconds = 0;
+                timerDisplay.textContent = '00:00';
+                gameStarted = false;
+                
+                // Reset star rating
+                document.querySelectorAll('.stars i').forEach(star => {
+                    star.style.opacity = '1';
+                });
+                
+                // Reset cards
+                cards.forEach(card => {
+                    card.element.classList.remove('flipped', 'matched');
+                    card.isFlipped = false;
+                    card.isMatched = false;
+                });
+            }
+            
+            // Flip a card
+            function flipCard(cardElement) {
+                if (!gameStarted) {
+                    startTimer();
+                    gameStarted = true;
+                }
+                
+                const card = cards.find(c => c.element === cardElement);
+                
+                // If card is already flipped or matched, do nothing
+                if (card.isFlipped || card.isMatched || flippedCards.length >= 2) {
+                    return;
+                }
+                
+                // Flip the card
+                cardElement.classList.add('flipped');
+                card.isFlipped = true;
+                flippedCards.push(card);
+                
+                // If two cards are flipped, check for match
+                if (flippedCards.length === 2) {
+                    moves++;
+                    movesDisplay.textContent = moves;
+                    updateStars();
+                    
+                    if (flippedCards[0].icon === flippedCards[1].icon) {
+                        // Match found
+                        flippedCards[0].element.classList.add('matched');
+                        flippedCards[1].element.classList.add('matched');
+                        flippedCards[0].isMatched = true;
+                        flippedCards[1].isMatched = true;
+                        matchedPairs++;
+                        
+                        // Create star animations
+                        createStarAnimation(flippedCards[0].element);
+                        createStarAnimation(flippedCards[1].element);
+                        
+                        setTimeout(() => {
+                            flippedCards = [];
+                            
+                            // Check for win
+                            if (matchedPairs === icons.length) {
+                                endGame();
+                            }
+                        }, 500);
+                    } else {
+                        // No match, flip back
+                        setTimeout(() => {
+                            flippedCards[0].element.classList.remove('flipped');
+                            flippedCards[1].element.classList.remove('flipped');
+                            flippedCards[0].isFlipped = false;
+                            flippedCards[1].isFlipped = false;
+                            flippedCards = [];
+                        }, 1000);
+                    }
+                }
+            }
+            
+            // Create star animation for matched cards
+            function createStarAnimation(cardElement) {
+                const rect = cardElement.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                for (let i = 0; i < 3; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star-animation';
+                    star.innerHTML = '<i class="fas fa-star"></i>';
+                    star.style.left = `${centerX}px`;
+                    star.style.top = `${centerY}px`;
+                    star.style.position = 'fixed';
+                    
+                    // Random end position
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 50 + Math.random() * 100;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    
+                    star.style.setProperty('--tx', `${tx}px`);
+                    star.style.setProperty('--ty', `${ty}px`);
+                    
+                    document.body.appendChild(star);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        star.remove();
+                    }, 1500);
+                }
+            }
+            
+            // Start the game timer
+            function startTimer() {
+                timer = setInterval(() => {
+                    seconds++;
+                    const minutes = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            // Update star rating based on moves
+            function updateStars() {
+                const stars = document.querySelectorAll('.fa-star');
+                
+                if (moves > 20) {
+                    stars[2].style.opacity = '0.3';
+                }
+                
+                if (moves > 30) {
+                    stars[1].style.opacity = '0.3';
+                }
+            }
+            
+            // End the game
+            function endGame() {
+                clearInterval(timer);
+                
+                // Update win message
+                winTime.textContent = timerDisplay.textContent;
+                winMoves.textContent = moves;
+                
+                // Calculate stars
+                let stars = 3;
+                if (moves > 30) stars = 1;
+                else if (moves > 20) stars = 2;
+                
+                winStars.textContent = stars;
+                
+                // Show win message
+                setTimeout(() => {
+                    winMessage.classList.add('show');
+                    createFireworks();
+                    createConfetti();
+                }, 1000);
+            }
+            
+            // Create fireworks animation
+            function createFireworks() {
+                fireworksContainer.innerHTML = '';
+                const colors = ['#ff5e5b', '#ffd166', '#06d6a0', '#118ab2', '#ff9e00', '#9b5de5'];
+                
+                for (let i = 0; i < 150; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    // Random properties
+                    const size = Math.random() * 8 + 2;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const posX = Math.random() * 100;
+                    const posY = Math.random() * 100;
+                    const animationDuration = Math.random() * 3 + 2;
+                    
+                    // Apply properties
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.backgroundColor = color;
+                    particle.style.left = `${posX}%`;
+                    particle.style.top = `${posY}%`;
+                    particle.style.animation = `float ${animationDuration}s infinite`;
+                    particle.style.opacity = '0';
+                    
+                    // Random delay for animation
+                    setTimeout(() => {
+                        particle.style.opacity = '1';
+                    }, Math.random() * 1000);
+                    
+                    fireworksContainer.appendChild(particle);
+                }
+            }
+            
+            // Create confetti explosion
+            function createConfetti() {
+                const colors = ['#ff5e5b', '#ffd166', '#06d6a0', '#118ab2', '#ff9e00', '#9b5de5'];
+                
+                for (let i = 0; i < 200; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = `${Math.random() * 10 + 5}px`;
+                    confetti.style.height = `${Math.random() * 10 + 5}px`;
+                    confetti.style.left = `${Math.random() * 100}vw`;
+                    confetti.style.top = '-10px';
+                    
+                    // Animation properties
+                    const animationDuration = Math.random() * 3 + 2;
+                    const horizontalMovement = (Math.random() - 0.5) * 200;
+                    
+                    // Keyframe animation
+                    confetti.style.animation = `
+                        fall ${animationDuration}s ease-in forwards,
+                        fade ${animationDuration}s ease-in forwards
+                    `;
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, animationDuration * 1000);
+                }
+                
+                // Define keyframes
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fall {
+                        0% {
+                            transform: translateY(0) rotate(0deg);
+                            opacity: 1;
+                        }
+                        100% {
+                            transform: translateY(100vh) rotate(${Math.random() * 360}deg);
+                            opacity: 0;
+                        }
+                    }
+                    @keyframes fade {
+                        0% { opacity: 1; }
+                        80% { opacity: 1; }
+                        100% { opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Utility function to shuffle an array
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+        });
+    </script>
+</body>
+</html>
